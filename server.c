@@ -23,12 +23,23 @@ int main()
 		exit(-1);
 	}
 
+	//reusable socket
 	if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR ,
 			&opt, sizeof(opt)))
 	{
 		perror("setsockopt");
+		close(sockfd);
 		exit(-1);
 	}
+
+	//make socket non-blocking
+	if(ioctl(sockfd, FIONBIO, (char *)&opt) < 0)
+	{
+		perror("ioctl failed");
+		close(sockfd);
+		exit(-1);
+	}
+
 
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
@@ -50,6 +61,13 @@ int main()
 	}
 
 
+	while(1)
+	{
+		//set FDs to listen
+		
+	}
+
+/*
 	//accept
 	newsock = accept(sockfd, (struct sockaddr*)&address, &addrlen);
 	if(newsock < 0)
@@ -57,10 +75,27 @@ int main()
 		perror("accept");
 		exit(-1);
 	}
+*/
 
 	read(newsock, buffer, 1024);
 	printf("%s\n", buffer);
 	send(newsock, hello, strlen(hello), 0);
 	return 0;
 
+}
+
+//To handle a new connection
+void handleNewConnection(vector<int> &accepted, int sockfd)
+{
+	struct sockaddr inaddr;
+	int newsock = accept(sockfd, (struct sockaddr*)&inaddr, sizeof(inaddr) );
+	if(newsock < 0)
+	{
+		perror("accept");
+		exit(-1);
+	}
+
+	//add to accepted list
+	accepted.push_back(newsock);
+	return;
 }
